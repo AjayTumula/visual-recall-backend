@@ -6,3 +6,4 @@ google-cloud-aiplatform
 elasticsearch>=8.10.0
 requests
 pydantic
+firebase_admin

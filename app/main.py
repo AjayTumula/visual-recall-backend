@@ -1,23 +1,15 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from app.routes.upload import router as upload_router
-from app.routes.query import router as query_router
-from app.routes.chat import router as chat_router
+from app.middleware.auth_middleware import FirebaseAuthMiddleware
+from app.routes import upload, index_memory, query, chat
 
 app = FastAPI(title="Visual Recall Journal API")
+app.add_middleware(FirebaseAuthMiddleware)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # restrict in prod
-     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+app.include_router(upload.router, prefix="/upload")
+app.include_router(index_memory.router, prefix="/index_memory")
+app.include_router(query.router, prefix="/query")
+app.include_router(chat.router, prefix="/chat")
 
-app.include_router(upload_router, prefix="/upload")
-app.include_router(query_router, prefix="/query")
-app.include_router(chat_router, prefix="/chat")
-
-@app.get("/")
-async def root():
+@app.get("/health")
+async def health_check():
     return {"status": "ok"}
