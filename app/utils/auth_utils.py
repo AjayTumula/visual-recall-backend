@@ -1,18 +1,11 @@
-# app/utils/auth_utils.py
-import firebase_admin
-from firebase_admin import auth, credentials
-from fastapi import HTTPException, Header
+from fastapi import Request, HTTPException
+from firebase_admin import auth as firebase_auth
 
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-
-def verify_user(authorization: str = Header(None)):
-    if not authorization:
-        raise HTTPException(status_code=401, detail="Missing Authorization header")
-
-    token = authorization.replace("Bearer ", "")
-    try:
-        decoded = auth.verify_id_token(token)
-        return decoded["uid"]
-    except Exception as e:
-        raise HTTPException(status_code=401, detail=f"Invalid token: {e}")
+def verify_user(request: Request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        raise HTTPException(status_code=401, detail="Unauthorized")
+    
+    token = auth_header.split(" ")[1]
+    decoded_token = firebase_auth.verify_id_token(token)
+    return decoded_token

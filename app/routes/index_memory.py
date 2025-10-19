@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.ai.embeddings import embed_text
 from app.db.elastic_client import es
-from utils.auth_utils import verify_user
+from app.utils.auth_utils import verify_user
 
 router = APIRouter()
 
