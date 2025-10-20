@@ -1,14 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.middleware.auth_middleware import FirebaseAuthMiddleware
-from app.routes import upload, index_memory, query, chat, memories
+from app.routes import upload, memories, query, chat
+import asyncio
 
-app = FastAPI(title="Visual Recall Journal API")
+app = FastAPI()
 
-# Firebase Authentication Middleware (run first)
-app.add_middleware(FirebaseAuthMiddleware)
-
-# ✅ CORS middleware should be added last so its headers are always set
+# CORS configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
@@ -17,13 +14,30 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routers
-app.include_router(upload.router, prefix="/upload", tags=["Upload"])
-app.include_router(index_memory.router, prefix="/index_memory", tags=["Index"])
-app.include_router(query.router, prefix="/query", tags=["Query"])
-app.include_router(chat.router, prefix="/chat", tags=["Chat"])
-app.include_router(memories.router, prefix="/memories", tags=["Memories"])
+# Include routers
+app.include_router(upload.router, prefix="/upload", tags=["upload"])
+app.include_router(memories.router, prefix="/memories", tags=["memories"])
+app.include_router(query.router, prefix="/query", tags=["query"])
+app.include_router(chat.router, prefix="/chat", tags=["chat"])
+
+@app.get("/")
+def read_root():
+    return {"message": "Visual Recall API", "status": "ready"}
 
 @app.get("/health")
-async def health_check():
-    return {"status": "ok"}
+def health_check():
+    """Check if all services are ready"""
+    from app.ai import embeddings
+    from app.db.mongo_client import memories_collection
+    
+    return {
+        "mongodb": "connected" if memories_collection is not None else "disconnected",
+        "text_model": "ready" if embeddings.text_model is not None else "loading",
+        "image_model": "ready" if embeddings.image_model is not None else "loading",
+    }
+
+@app.on_event("startup")
+async def startup_event():
+    print("=" * 60)
+    print("🚀 Visual Recall Backend Starting...")
+    print("=" * 60)

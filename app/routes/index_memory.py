@@ -7,6 +7,9 @@ router = APIRouter()
 
 @router.post("/")
 async def index_memory(data: dict, user_id: str = Depends(verify_user)):
+    """
+    Index a memory (caption + image) into Elasticsearch
+    """
     try:
         vector = embed_text(data["caption"])
         doc = {
@@ -14,8 +17,12 @@ async def index_memory(data: dict, user_id: str = Depends(verify_user)):
             "caption": data["caption"],
             "image_url": data["image_url"],
             "vector": vector,
+            "timestamp": data.get("timestamp"),
         }
-        es.index(index="visual-memories", document=doc)
+
+        # ✅ Changed from "visual-memories" to "search-visual"
+        es.index(index="search-visual", document=doc)
         return {"status": "indexed"}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
