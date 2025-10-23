@@ -8,9 +8,12 @@ from google.cloud import storage
 load_dotenv()
 
 # Firebase Admin
-firebase_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
-cred = credentials.Certificate(firebase_path)
-firebase_admin.initialize_app(cred)
+# firebase_path = os.getenv("FIREBASE_CREDENTIALS_PATH")
+# cred = credentials.Certificate(firebase_path)
+# firebase_admin.initialize_app(cred)
+if not firebase_admin._apps:
+    firebase_admin.initialize_app()
+print("✅ Firebase Admin initialized (no service account)")
 print("✅ Firebase Admin initialized")
 
 # Google Cloud Storage
